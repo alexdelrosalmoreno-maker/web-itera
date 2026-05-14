@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITERA | Automatización con Inteligencia Artificial</title>
+    <meta name="description"
+        content="Agencia de automatización con IA. Revoluciona tu negocio con chatbots, agentes de trabajo e integraciones avanzadas.">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Background Effects -->
+    <div class="bg-glow">
+        <div class="glow-orb cyan"></div>
+        <div class="glow-orb purple"></div>
+        <canvas id="three-canvas"></canvas>
+    </div>
+
+    <!-- 1. Navbar -->
+    <header class="navbar" id="navbar">
+        <div class="container">
+            <a href="#" class="logo">ITERA<span>.</span></a>
+
+            <nav>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#services">Servicios</a></li>
+                    <li><a href="#methodology">Proceso</a></li>
+                    <li><a href="#cases">Casos</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+
+                </ul>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+                <a href="#contact" class="btn btn-neon">Contacta</a>
+            </div>
+
+            <button class="menu-toggle" id="menu-toggle">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Automatiza tu negocio con <span class="gradient-text">Inteligencia Artificial</span></h1>
+                <p>Liberamos a tu equipo de tareas repetitivas para que se enfoquen en lo que realmente importa: el
+                    crecimiento de tu empresa.</p>
+                <div class="hero-actions">
+                    <a href="#contact" class="btn btn-neon" id="hero-cta">Empieza Ahora</a>
+                    <a href="#services" class="btn btn-glass">Descubre Cómo</a>
+                </div>
+            </div>
+
+            <!-- Chat Mockup -->
+            <div class="hero-mockup">
+                <div class="mockup-container">
+                    <div class="mockup-inner">
+                        <div class="mockup-header">
+                            <div class="mockup-avatar">
+                                <i data-lucide="bot" color="white"></i>
+                            </div>
+                            <div class="mockup-header-info">
+                                <h4>ITERA Agent</h4>
+                                <p>En línea</p>
+                            </div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-msg bot">Hola, he analizado los datos de ventas de esta semana. 📊</div>
+                            <div class="mockup-msg user">Excelente. ¿Puedes generar el reporte para gerencia?</div>
+                            <div class="mockup-msg bot">¡Claro! Reporte generado y enviado por correo a todo el equipo.
+                                🚀</div>
+                        </div>
+                        <div class="mockup-footer">
+                            <input type="text" class="mockup-input" placeholder="Escribe un comando..." disabled>
+                            <button class="mockup-send" disabled><i data-lucide="send" size="18"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Tech Ecosystem Section (Replacing Trust) -->
+    <section class="trust">
+        <div class="container">
+            <p>Impulsamos tu negocio con tecnología de vanguardia</p>
+            <div class="logos-grid">
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> OpenAI</div>
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> n8n</div>
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> Anthropic</div>
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> Google Cloud</div>
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> Make.com</div>
+                <div class="tech-badge"><i data-lucide="zap" size="16"></i> Pinecone</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Services Section -->
+    <section id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nuestros <span class="gradient-text">Servicios</span></h2>
+                <p>Soluciones a medida impulsadas por la última tecnología en inteligencia artificial.</p>
+            </div>
+
+            <div class="services-grid">
+                <div class="service-card glass-panel">
+                    <div class="service-icon"><i data-lucide="message-square-text"></i></div>
+                    <h3>Chatbots Inteligentes</h3>
+                    <p>Atención al cliente 24/7 que entiende el contexto y resuelve problemas en tiempo real.</p>
+                </div>
+                <div class="service-card glass-panel">
+                    <div class="service-icon"><i data-lucide="cpu"></i></div>
+                    <h3>Agentes de Trabajo</h3>
+                    <p>Empleados virtuales autónomos que gestionan correos, agenda y análisis de datos.</p>
+                </div>
+                <div class="service-card glass-panel">
+                    <div class="service-icon"><i data-lucide="zap"></i></div>
+                    <h3>Automatización de Flujos</h3>
+                    <p>Conectamos tus apps (CRM, ERP, Mail) para que trabajen solas sin intervención humana.</p>
+                </div>
+                <div class="service-card glass-panel">
+                    <div class="service-icon"><i data-lucide="network"></i></div>
+                    <h3>Integración de APIs</h3>
+                    <p>Sistemas completamente unificados y sincronizados para una máxima eficiencia operativa.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Benefits (Stats) Section -->
+    <section id="benefits">
+        <div class="container">
+            <div class="benefits-container glass-panel">
+                <div class="stat-item">
+                    <span class="stat-number gradient-text">+40%</span>
+                    <span class="stat-label">Eficiencia Operativa</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number gradient-text">24/7</span>
+                    <span class="stat-label">Soporte Continuo</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number gradient-text">-60%</span>
+                    <span class="stat-label">Tareas Repetitivas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number gradient-text">100%</span>
+                    <span class="stat-label">Adaptabilidad</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5.5 Calculator Section -->
+    <section id="roi-calculator">
+        <div class="container">
+            <div class="section-header">
+                <h2>Calcula tu <span class="gradient-text">Ahorro con IA</span></h2>
+                <p>Descubre el impacto real de la automatización en los costes operativos de tu empresa.</p>
+            </div>
+
+            <div class="calculator-container glass-panel">
+                <div class="calc-inputs">
+                    <div class="input-group">
+                        <label>Tarea a Automatizar</label>
+                        <select id="task-select" class="calc-select">
+                            <option value="customer_support" data-rate="25">Atención al Cliente</option>
+                            <option value="emails" data-rate="22">Responder Emails</option>
+                            <option value="crm" data-rate="28">Gestión de CRM</option>
+                            <option value="data_entry" data-rate="18">Introducción de Datos</option>
+                            <option value="meetings" data-rate="30">Programación de Reuniones</option>
+                            <option value="leads" data-rate="35">Seguimiento de Leads</option>
+                            <option value="invoicing" data-rate="25">Facturación</option>
+                            <option value="admin" data-rate="22">Gestión Administrativa</option>
+                            <option value="it_support" data-rate="40">Soporte Técnico Básico</option>
+                            <option value="content" data-rate="30">Publicación de Contenido</option>
+                            <option value="custom" data-rate="25">Otra Tarea</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label>Horas semanales por empleado</label>
+                            <span id="val-hours">20h</span>
+                        </div>
+                        <input type="range" id="input-hours" min="1" max="40" value="20" class="calc-slider">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label>Número de empleados</label>
+                            <span id="val-employees">5</span>
+                        </div>
+                        <input type="range" id="input-employees" min="1" max="100" value="5" class="calc-slider">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label>Coste por hora (€)</label>
+                            <span id="val-cost">25€</span>
+                        </div>
+                        <input type="range" id="input-cost" min="10" max="150" value="25" class="calc-slider">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label>% Automatizable con IA</label>
+                            <span id="val-percent">70%</span>
+                        </div>
+                        <input type="range" id="input-percent" min="10" max="100" value="70" class="calc-slider">
+                    </div>
+                </div>
+
+                <div class="calc-results">
+                    <div class="result-main">
+                        <p>Tu empresa podría ahorrar aproximadamente:</p>
+                        <h3 id="result-monthly" class="gradient-text">0€</h3>
+                        <span class="res-sub">al mes</span>
+                        <h2 id="result-annual" class="gradient-text">0€</h2>
+                        <span class="res-sub">al año</span>
+                    </div>
+
+                    <div class="result-stats">
+                        <div class="res-stat-item">
+                            <span class="res-label">Tiempo Recuperado</span>
+                            <span class="res-value" id="res-time">0h</span>
+                        </div>
+                        <div class="res-stat-item">
+                            <span class="res-label">Eficiencia (ROI)</span>
+                            <span class="res-value" id="res-roi">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-cta">
+                        <p>¿Quieres recuperar estas horas hoy mismo?</p>
+                        <a href="#footer" class="btn btn-neon">Solicitar Automatización Personalizada</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Methodology Section -->
+    <section id="methodology">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nuestro <span class="gradient-text">Proceso</span></h2>
+                <p>Un enfoque estructurado para garantizar el éxito de tu transformación digital.</p>
+            </div>
+
+            <div class="methodology-steps">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3>Auditoría</h3>
+                    <p>Analizamos tus procesos actuales para identificar cuellos de botella.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3>Diseño</h3>
+                    <p>Creamos la arquitectura del flujo de automatización ideal.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3>Desarrollo</h3>
+                    <p>Implementamos y entrenamos los modelos de IA y flujos.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <h3>Optimización</h3>
+                    <p>Monitoreamos y mejoramos continuamente el rendimiento.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Cases Section -->
+    <section id="cases">
+        <div class="container">
+            <div class="section-header">
+                <h2>Casos de <span class="gradient-text">Éxito</span></h2>
+                <p>Resultados reales de empresas que ya han dado el salto hacia el futuro.</p>
+            </div>
+
+            <div class="cases-grid">
+                <div class="case-card glass-panel">
+                    <div class="case-header">
+                        <i data-lucide="shopping-cart" class="case-icon" size="32"></i>
+                        <h3 class="case-title">E-commerce Retail</h3>
+                    </div>
+                    <p class="case-desc">Automatización completa del servicio post-venta y seguimiento de envíos
+                        mediante IA conversacional.</p>
+                    <div class="case-result"><i data-lucide="trending-up" size="18"></i> +300% retención</div>
+                </div>
+                <div class="case-card glass-panel">
+                    <div class="case-header">
+                        <i data-lucide="building-2" class="case-icon" size="32"></i>
+                        <h3 class="case-title">Agencia Inmobiliaria</h3>
+                    </div>
+                    <p class="case-desc">Agente virtual para cualificación de leads 24/7 y agendamiento automático de
+                        visitas en el CRM.</p>
+                    <div class="case-result"><i data-lucide="clock" size="18"></i> Ahorro de 40h/semana</div>
+                </div>
+                <div class="case-card glass-panel">
+                    <div class="case-header">
+                        <i data-lucide="stethoscope" class="case-icon" size="32"></i>
+                        <h3 class="case-title">Clínica Médica</h3>
+                    </div>
+                    <p class="case-desc">Sistema de recordatorios, gestión de citas y pre-diagnóstico básico integrado
+                        por WhatsApp.</p>
+                    <div class="case-result"><i data-lucide="check-circle" size="18"></i> -80% ausencias</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. FAQ Section -->
+    <section id="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2>Preguntas <span class="gradient-text">Frecuentes</span></h2>
+            </div>
+
+            <div class="faq-container">
+                <div class="faq-item glass-panel">
+                    <button class="faq-question">
+                        ¿Qué es la automatización con IA?
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <br>Es el uso de inteligencia artificial para realizar tareas repetitivas o complejas de
+                            forma autónoma, conectando diferentes sistemas y tomando decisiones basadas en datos para
+                            optimizar los procesos de tu negocio.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item glass-panel">
+                    <button class="faq-question">
+                        ¿Necesito conocimientos técnicos previos?
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <br>No, en ITERA nos encargamos de todo. Desde la consultoría inicial hasta la
+                            implementación y el mantenimiento. Te entregamos soluciones listas para usar.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item glass-panel">
+                    <button class="faq-question">
+                        ¿Es segura la información de mi empresa?
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <br>Absolutamente. Utilizamos protocolos de encriptación de grado empresarial y nos
+                            aseguramos de que todos los agentes de IA cumplan con las normativas de privacidad de datos
+                            (RGPD).
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>¿Listo para <span class="gradient-text">Escalar?</span></h2>
+                <p>Cuéntanos tu proyecto y diseñaremos una solución de IA a medida para tu negocio.</p>
+            </div>
+
+            <div class="contact-container">
+                <form id="contact-form" class="contact-form glass-panel">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Nombre Completo</label>
+                            <input type="text" id="name" name="name" placeholder="Tu nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Corporativo</label>
+                            <input type="email" id="email" name="email" placeholder="nombre@empresa.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service">Servicio de Interés</label>
+                        <select id="service" name="service" required>
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="chatbots">Chatbots e IA Conversacional</option>
+                            <option value="agents">Agentes Autónomos de Trabajo</option>
+                            <option value="workflow">Automatización de Flujos (n8n/Make)</option>
+                            <option value="consulting">Consultoría Estratégica de IA</option>
+                            <option value="other">Otro Proyecto a Medida</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Mensaje</label>
+                        <textarea id="message" name="message" rows="5"
+                            placeholder="Cuéntanos brevemente qué procesos te gustaría optimizar..."
+                            required></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" id="privacy" name="privacy" required>
+                        <label for="privacy">He leído y acepto la <a href="privacidad.html">Política de
+                                Privacidad</a></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-neon w-full">Enviar Solicitud <i data-lucide="arrow-right"
+                            size="18" style="margin-left: 10px;"></i></button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Footer -->
+    <footer id="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <a href="#" class="logo">ITERA<span>.</span></a>
+                    <p style="color: var(--text-secondary); margin-top: 15px; font-size: 0.9rem;">
+                        Transformando negocios a través de la inteligencia artificial.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#services">Servicios</a></li>
+                        <li><a href="#methodology">Proceso</a></li>
+                        <li><a href="#cases">Casos de Éxito</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacidad.html">Privacidad</a></li>
+                        <li><a href="#">Términos de Servicio</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><a href="mailto:hola@itera.ai">hola@itera.ai</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                        <li><a href="#">Twitter / X</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 ITERA AI. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- 10. Floating Chat Widget -->
+    <div id="chat-widget-container">
+        <!-- Panel -->
+        <div class="chat-panel glass-panel" id="chat-panel">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="mockup-avatar" style="width: 30px; height: 30px;">
+                        <i data-lucide="bot" color="white" size="18"></i>
+                    </div>
+                    <span style="font-family: var(--font-heading); font-weight: 600;">Asistente ITERA</span>
+                </div>
+                <button class="chat-close" id="chat-close"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    Hola 👋. Soy el asistente virtual de ITERA. ¿En qué puedo ayudarte hoy para automatizar tu negocio?
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." autocomplete="off">
+                <button id="chat-submit"><i data-lucide="send" size="18"></i></button>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button class="chat-toggle-btn" id="chat-toggle-btn">
+            <i data-lucide="message-circle" size="28"></i>
+        </button>
+    </div>
+
+    <!-- 11. Cookie Banner -->
+    <div id="cookie-banner" class="cookie-banner glass-panel">
+        <div class="cookie-content">
+            <div class="cookie-icon"><i data-lucide="shield-check"></i></div>
+            <div class="cookie-text">
+                <h4>Tu Privacidad importa</h4>
+                <p>Utilizamos cookies para optimizar tu experiencia y analizar el tráfico. Puedes aceptar todas o
+                    configurar tus preferencias.</p>
+            </div>
+        </div>
+        <div class="cookie-actions">
+            <button id="btn-cookies-reject" class="btn btn-glass">Rechazar</button>
+            <button id="btn-cookies-accept" class="btn btn-neon">Aceptar Todas</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+
+</html>
