@@ -80,7 +80,9 @@ const chatInput = document.getElementById('chat-input');
 const chatSubmit = document.getElementById('chat-submit');
 const heroCta = document.getElementById('hero-cta');
 
-const N8N_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/chat_landing_agent';
+const ITERA_CONFIG = window.ITERA_CONFIG || {};
+const N8N_BASE_URL = (ITERA_CONFIG.n8nBaseUrl || '').replace(/\/+$/, '');
+const N8N_WEBHOOK_URL = ITERA_CONFIG.chatWebhookUrl || `${N8N_BASE_URL}/webhook/chat_landing`;
 
 const SESSION_TTL_MS = 30 * 60 * 1000;
 
@@ -199,6 +201,10 @@ async function handleSend() {
     chatSubmit.disabled = true;
 
     try {
+        if (!N8N_BASE_URL && !ITERA_CONFIG.chatWebhookUrl) {
+            throw new Error('N8N webhook is not configured');
+        }
+
         const response = await fetch(N8N_WEBHOOK_URL, {
             method: 'POST',
             headers: {
@@ -627,7 +633,7 @@ const initCookies = () => {
     }
 };
 
-const CONTACT_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/contact_landing';
+const CONTACT_WEBHOOK_URL = ITERA_CONFIG.contactWebhookUrl || `${N8N_BASE_URL}/webhook/contact_landing`;
 
 const getTrackingData = () => {
     const params = new URLSearchParams(window.location.search);
@@ -810,6 +816,10 @@ const initContactForm = () => {
         }
 
         try {
+            if (!N8N_BASE_URL && !ITERA_CONFIG.contactWebhookUrl) {
+                throw new Error('N8N webhook is not configured');
+            }
+
             const response = await fetch(CONTACT_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {

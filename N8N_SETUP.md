@@ -32,8 +32,10 @@
 
 ## Webhooks esperados por la web
 
-- Chat: `https://elkta.app.n8n.cloud/webhook/chat_landing`
-- Formulario: `https://elkta.app.n8n.cloud/webhook/contact_landing`
+- Chat: `https://TU_DOMINIO_N8N/webhook/chat_landing`
+- Formulario: `https://TU_DOMINIO_N8N/webhook/contact_landing`
+
+En EasyPanel configura la landing con `N8N_BASE_URL=https://TU_DOMINIO_N8N`.
 
 ## OpenAI con API key propia
 

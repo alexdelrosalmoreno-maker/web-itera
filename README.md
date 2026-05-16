@@ -30,6 +30,18 @@ ITERA es una landing page futurista diseñada para una agencia de automatizació
 - `script.js`: Lógica del sitio, calculadora y Three.js.
 - `globe.png`: Assets visuales.
 
+### Despliegue recomendado en EasyPanel
+
+Este proyecto incluye `Dockerfile`, `nginx.conf` y configuracion runtime para desplegar la landing como una App Docker en EasyPanel.
+
+Consulta `EASYPANEL_DEPLOY.md` para conectar:
+- landing web,
+- n8n,
+- Supabase,
+- Google Sheets,
+- Google Calendar,
+- OpenAI.
+
 ### 🚀 Despliegue en GitHub Pages
 
 Para desplegar este proyecto en GitHub Pages:
