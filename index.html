@@ -7,15 +7,35 @@
     <title>ITERA | Automatización con Inteligencia Artificial</title>
     <meta name="description"
         content="Agencia de automatización con IA. Revoluciona tu negocio con chatbots, agentes de trabajo e integraciones avanzadas.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#05070a">
+    <link rel="canonical" href="https://itera.ai/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ITERA | Automatización con Inteligencia Artificial">
+    <meta property="og:description"
+        content="Automatiza procesos, conecta herramientas y libera a tu equipo de tareas repetitivas con soluciones de IA a medida.">
+    <meta property="og:image" content="globe.png">
+    <meta property="og:locale" content="es_ES">
+    <meta name="twitter:card" content="summary_large_image">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260515-cookies">
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "ITERA AI",
+            "url": "https://itera.ai/",
+            "email": "hola@itera.ai",
+            "description": "Agencia de automatización con inteligencia artificial para empresas."
+        }
+    </script>
 </head>
 
 <body>
@@ -44,7 +64,8 @@
 
             <div class="nav-actions">
                 <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
-                    <i data-lucide="moon" id="theme-icon"></i>
+                    <i data-lucide="moon" class="icon-moon"></i>
+                    <i data-lucide="sun" class="icon-sun"></i>
                 </button>
                 <a href="#contact" class="btn btn-neon">Contacta</a>
             </div>
@@ -251,7 +272,7 @@
 
                     <div class="calc-cta">
                         <p>¿Quieres recuperar estas horas hoy mismo?</p>
-                        <a href="#footer" class="btn btn-neon">Solicitar Automatización Personalizada</a>
+                        <a href="#contact" class="btn btn-neon" id="calculator-cta">Solicitar Automatización Personalizada</a>
                     </div>
                 </div>
             </div>
@@ -400,18 +421,36 @@
                             <label for="email">Email Corporativo</label>
                             <input type="email" id="email" name="email" placeholder="nombre@empresa.com" required>
                         </div>
+                        <div class="form-group">
+                            <label for="company">Empresa</label>
+                            <input type="text" id="company" name="company" placeholder="Nombre de tu empresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono / WhatsApp</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+34 600 000 000">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="service">Servicio de Interés</label>
-                        <select id="service" name="service" required>
-                            <option value="" disabled selected>Selecciona una opción</option>
-                            <option value="chatbots">Chatbots e IA Conversacional</option>
-                            <option value="agents">Agentes Autónomos de Trabajo</option>
-                            <option value="workflow">Automatización de Flujos (n8n/Make)</option>
-                            <option value="consulting">Consultoría Estratégica de IA</option>
-                            <option value="other">Otro Proyecto a Medida</option>
-                        </select>
+                    <div class="form-group custom-dropdown-group">
+                        <label id="service-label">Servicio de Interés</label>
+                        <div class="custom-select-wrapper">
+                            <div class="custom-select" id="service-custom-select">
+                                <button class="custom-select-trigger" type="button" aria-haspopup="listbox"
+                                    aria-expanded="false" aria-labelledby="service-label service-selected">
+                                    <span class="custom-select-text" id="service-selected">Selecciona una opción</span>
+                                    <i data-lucide="chevron-down"></i>
+                                </button>
+                                <div class="custom-options" role="listbox" aria-labelledby="service-label">
+                                    <button class="custom-option" type="button" role="option" data-value="chatbots">Chatbots e IA Conversacional</button>
+                                    <button class="custom-option" type="button" role="option" data-value="agents">Agentes Autónomos de Trabajo</button>
+                                    <button class="custom-option" type="button" role="option" data-value="workflow">Automatización de Flujos (n8n/Make)</button>
+                                    <button class="custom-option" type="button" role="option" data-value="consulting">Consultoría Estratégica de IA</button>
+                                    <button class="custom-option" type="button" role="option" data-value="other">Otro Proyecto a Medida</button>
+                                </div>
+                            </div>
+                            <!-- Input real validado -->
+                            <input type="text" id="service" name="service" required class="sr-only">
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -429,6 +468,7 @@
 
                     <button type="submit" class="btn btn-neon w-full">Enviar Solicitud <i data-lucide="arrow-right"
                             size="18" style="margin-left: 10px;"></i></button>
+                    <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
                 </form>
             </div>
         </div>
@@ -457,7 +497,7 @@
                     <ul>
                         <li><a href="privacidad.html">Privacidad</a></li>
                         <li><a href="#">Términos de Servicio</a></li>
-                        <li><a href="#">Cookies</a></li>
+                        <li><a href="#" id="footer-cookie-settings">Cookies</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -508,23 +548,41 @@
     </div>
 
     <!-- 11. Cookie Banner -->
-    <div id="cookie-banner" class="cookie-banner glass-panel">
+    <div id="cookie-banner" class="cookie-banner" role="dialog" aria-live="polite" aria-label="Preferencias de cookies">
         <div class="cookie-content">
             <div class="cookie-icon"><i data-lucide="shield-check"></i></div>
             <div class="cookie-text">
-                <h4>Tu Privacidad importa</h4>
-                <p>Utilizamos cookies para optimizar tu experiencia y analizar el tráfico. Puedes aceptar todas o
-                    configurar tus preferencias.</p>
+                <h4>Cookies en ITERA</h4>
+                <p>Usamos cookies necesarias para que la web funcione y, si nos das permiso, analíticas para mejorar la experiencia.</p>
+                <div class="cookie-preferences" id="cookie-preferences" hidden>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" checked disabled>
+                        <span>Necesarias</span>
+                        <small>Siempre activas</small>
+                    </label>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-analytics">
+                        <span>Analíticas</span>
+                        <small>Nos ayudan a entender el uso de la web</small>
+                    </label>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-marketing">
+                        <span>Marketing</span>
+                        <small>Para medir campañas y formularios</small>
+                    </label>
+                </div>
             </div>
         </div>
         <div class="cookie-actions">
-            <button id="btn-cookies-reject" class="btn btn-glass">Rechazar</button>
-            <button id="btn-cookies-accept" class="btn btn-neon">Aceptar Todas</button>
+            <button id="btn-cookies-preferences" class="btn btn-glass" type="button">Preferencias</button>
+            <button id="btn-cookies-reject" class="btn btn-glass" type="button">Solo necesarias</button>
+            <button id="btn-cookies-save" class="btn btn-glass" type="button" hidden>Guardar</button>
+            <button id="btn-cookies-accept" class="btn btn-neon" type="button">Aceptar</button>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="script.js"></script>
+    <script src="script.js?v=20260515-cookies"></script>
 </body>
 
 </html>

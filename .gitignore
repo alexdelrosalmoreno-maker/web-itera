@@ -8,5 +8,12 @@
 .DS_Store
 Thumbs.db
 
+# Dependencies
+node_modules/
+.npm/
+
 # Logs
 *.log
+
+# Project specific
+outputs/

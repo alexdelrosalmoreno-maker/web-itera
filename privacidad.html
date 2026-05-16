@@ -68,7 +68,8 @@
             <a href="index.html" class="logo">ITERA<span>.</span></a>
             <div class="nav-actions">
                 <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
-                    <i data-lucide="moon" id="theme-icon"></i>
+                    <i data-lucide="moon" class="icon-moon"></i>
+                    <i data-lucide="sun" class="icon-sun"></i>
                 </button>
                 <a href="index.html" class="btn btn-neon">Volver</a>
             </div>
@@ -154,13 +155,10 @@
 
         // Theme Management (Simple version for policy page)
         const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
         const currentTheme = localStorage.getItem('theme') || 'dark';
 
         if (currentTheme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
-            themeIcon.setAttribute('data-lucide', 'sun');
-            lucide.createIcons();
         }
 
         themeToggle.addEventListener('click', () => {
@@ -168,13 +166,10 @@
             if (theme === 'light') {
                 document.documentElement.removeAttribute('data-theme');
                 localStorage.setItem('theme', 'dark');
-                themeIcon.setAttribute('data-lucide', 'moon');
             } else {
                 document.documentElement.setAttribute('data-theme', 'light');
                 localStorage.setItem('theme', 'light');
-                themeIcon.setAttribute('data-lucide', 'sun');
             }
-            lucide.createIcons();
         });
     </script>
 </body>

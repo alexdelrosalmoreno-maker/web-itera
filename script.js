@@ -1,15 +1,14 @@
-// Inicializar Lucide Icons
-lucide.createIcons();
+// Inicializar Lucide Icons sin bloquear el resto de la página si el CDN no carga.
+if (window.lucide) {
+    lucide.createIcons();
+}
 
 // --- Theme Management ---
 const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
 const currentTheme = localStorage.getItem('theme') || 'dark';
 
 if (currentTheme === 'light') {
     document.documentElement.setAttribute('data-theme', 'light');
-    themeIcon.setAttribute('data-lucide', 'sun');
-    lucide.createIcons(); // Re-render for the toggle button
 }
 
 themeToggle.addEventListener('click', () => {
@@ -17,13 +16,10 @@ themeToggle.addEventListener('click', () => {
     if (theme === 'light') {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'dark');
-        themeIcon.setAttribute('data-lucide', 'moon');
     } else {
         document.documentElement.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
-        themeIcon.setAttribute('data-lucide', 'sun');
     }
-    lucide.createIcons();
 });
 
 
@@ -84,14 +80,44 @@ const chatInput = document.getElementById('chat-input');
 const chatSubmit = document.getElementById('chat-submit');
 const heroCta = document.getElementById('hero-cta');
 
-const N8N_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/chat_landing';
+const N8N_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/chat_landing_agent';
 
-// Generar o recuperar sessionId
-let sessionId = localStorage.getItem('itera_sessionId');
-if (!sessionId) {
-    sessionId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    localStorage.setItem('itera_sessionId', sessionId);
+const SESSION_TTL_MS = 30 * 60 * 1000;
+
+function createSessionId() {
+    return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 }
+
+function loadSessionId() {
+    const now = Date.now();
+    let sessionData = {};
+
+    try {
+        sessionData = JSON.parse(localStorage.getItem('itera_session') || '{}');
+    } catch (error) {
+        sessionData = {};
+    }
+
+    if (!sessionData.id || !sessionData.lastActive || now - Number(sessionData.lastActive) > SESSION_TTL_MS) {
+        sessionData = { id: createSessionId(), createdAt: now, lastActive: now };
+        localStorage.setItem('itera_session', JSON.stringify(sessionData));
+        localStorage.setItem('itera_sessionId', sessionData.id);
+    }
+
+    return sessionData.id;
+}
+
+function persistSessionId(id) {
+    const now = Date.now();
+    localStorage.setItem('itera_session', JSON.stringify({ id, createdAt: now, lastActive: now }));
+    localStorage.setItem('itera_sessionId', id);
+}
+
+function startsNewLead(message) {
+    return /\b(soy otro cliente|nuevo cliente|otra persona|empezar de cero|nueva conversaci[oó]n)\b/i.test(message);
+}
+
+let sessionId = loadSessionId();
 
 // UI Toggles
 function openChat() {
@@ -127,9 +153,7 @@ function addMessage(text, sender, isError = false) {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message', sender);
     if (isError) msgDiv.classList.add('error');
-    
-    // Parseo simple de saltos de línea a <br>
-    msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+    msgDiv.textContent = text;
     
     chatMessages.appendChild(msgDiv);
     scrollToBottom();
@@ -162,6 +186,11 @@ async function handleSend() {
     const messageText = chatInput.value.trim();
     if (!messageText) return;
 
+    if (startsNewLead(messageText)) {
+        sessionId = createSessionId();
+        persistSessionId(sessionId);
+    }
+
     // UI Updates
     chatInput.value = '';
     addMessage(messageText, 'user');
@@ -177,7 +206,8 @@ async function handleSend() {
             },
             body: JSON.stringify({
                 message: messageText,
-                sessionId: sessionId
+                sessionId: sessionId,
+                ...getTrackingData()
             })
         });
 
@@ -191,6 +221,10 @@ async function handleSend() {
         // Intentar parsear JSON, si no, usar texto plano
         try {
             const jsonData = JSON.parse(data);
+            if (jsonData.sessionId) {
+                sessionId = jsonData.sessionId;
+                persistSessionId(sessionId);
+            }
             // Extraer respuesta del JSON asumiendo algunas estructuras comunes (reply, message, output)
             const botReply = jsonData.reply || jsonData.message || jsonData.output || (jsonData.length && jsonData[0].reply) || JSON.stringify(jsonData);
             addMessage(botReply, 'bot');
@@ -468,27 +502,173 @@ const initCookies = () => {
     const cookieBanner = document.getElementById('cookie-banner');
     const acceptBtn = document.getElementById('btn-cookies-accept');
     const rejectBtn = document.getElementById('btn-cookies-reject');
+    const preferencesBtn = document.getElementById('btn-cookies-preferences');
+    const saveBtn = document.getElementById('btn-cookies-save');
+    const preferencesPanel = document.getElementById('cookie-preferences');
+    const analyticsInput = document.getElementById('cookie-analytics');
+    const marketingInput = document.getElementById('cookie-marketing');
+    const footerCookieSettings = document.getElementById('footer-cookie-settings');
 
     if (!cookieBanner) return;
 
-    const cookiePreference = localStorage.getItem('itera_cookies');
+    const COOKIE_CONSENT_VERSION = 'itera-cookies-v2';
 
-    if (!cookiePreference) {
-        setTimeout(() => {
-            cookieBanner.classList.add('active');
-        }, 2000);
-    }
-
-    const setPreference = (pref) => {
-        localStorage.setItem('itera_cookies', pref);
-        cookieBanner.classList.remove('active');
+    const defaultPreferences = {
+        necessary: true,
+        analytics: false,
+        marketing: false,
+        version: '',
+        savedAt: ''
     };
 
-    if (acceptBtn) acceptBtn.addEventListener('click', () => setPreference('accepted'));
-    if (rejectBtn) rejectBtn.addEventListener('click', () => setPreference('rejected'));
+    const getPreferences = () => {
+        try {
+            const storedPreferences = localStorage.getItem('itera_cookies');
+            if (storedPreferences === 'accepted') {
+                return {
+                    ...defaultPreferences,
+                    analytics: true,
+                    marketing: true,
+                    version: 'legacy',
+                    savedAt: 'legacy'
+                };
+            }
+            if (storedPreferences === 'rejected') {
+                return {
+                    ...defaultPreferences,
+                    version: 'legacy',
+                    savedAt: 'legacy'
+                };
+            }
+            return {
+                ...defaultPreferences,
+                ...JSON.parse(storedPreferences || '{}')
+            };
+        } catch (error) {
+            return { ...defaultPreferences };
+        }
+    };
+
+    const applyPreferences = (preferences) => {
+        document.documentElement.classList.toggle('cookies-analytics', Boolean(preferences.analytics));
+        document.documentElement.classList.toggle('cookies-marketing', Boolean(preferences.marketing));
+    };
+
+    const openBanner = (showPreferences = false) => {
+        const preferences = getPreferences();
+        if (analyticsInput) analyticsInput.checked = Boolean(preferences.analytics);
+        if (marketingInput) marketingInput.checked = Boolean(preferences.marketing);
+        if (preferencesPanel) preferencesPanel.hidden = !showPreferences;
+        if (saveBtn) saveBtn.hidden = !showPreferences;
+        if (preferencesBtn) preferencesBtn.setAttribute('aria-expanded', String(showPreferences));
+        cookieBanner.classList.add('active');
+    };
+
+    const closeBanner = () => {
+        cookieBanner.classList.remove('active');
+        if (preferencesBtn) preferencesBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    const setPreferences = (preferences) => {
+        const nextPreferences = {
+            ...defaultPreferences,
+            ...preferences,
+            necessary: true,
+            version: COOKIE_CONSENT_VERSION,
+            savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('itera_cookies', JSON.stringify(nextPreferences));
+        applyPreferences(nextPreferences);
+        closeBanner();
+    };
+
+    const initialPreferences = getPreferences();
+    applyPreferences(initialPreferences);
+
+    if (initialPreferences.version !== COOKIE_CONSENT_VERSION) {
+        setTimeout(() => {
+            openBanner(false);
+        }, 900);
+    }
+
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', () => setPreferences({
+            analytics: true,
+            marketing: true
+        }));
+    }
+
+    if (rejectBtn) {
+        rejectBtn.addEventListener('click', () => setPreferences({
+            analytics: false,
+            marketing: false
+        }));
+    }
+
+    if (preferencesBtn) {
+        preferencesBtn.addEventListener('click', () => {
+            const shouldOpen = preferencesPanel?.hidden;
+            openBanner(Boolean(shouldOpen));
+        });
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => setPreferences({
+            analytics: Boolean(analyticsInput?.checked),
+            marketing: Boolean(marketingInput?.checked)
+        }));
+    }
+
+    if (footerCookieSettings) {
+        footerCookieSettings.addEventListener('click', (event) => {
+            event.preventDefault();
+            openBanner(true);
+        });
+    }
 };
 
-const CONTACT_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook-test/a25e00a4-4c02-47e3-9c49-b8e1255f0cae';
+const CONTACT_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/contact_landing';
+
+const getTrackingData = () => {
+    const params = new URLSearchParams(window.location.search);
+    const utm = {};
+
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(key => {
+        if (params.get(key)) utm[key] = params.get(key);
+    });
+
+    return {
+        source: 'itera_landing',
+        page: window.location.pathname || '/',
+        url: window.location.href,
+        referrer: document.referrer || '',
+        sessionId,
+        utm
+    };
+};
+
+const getCalculatorSnapshot = () => {
+    const taskSelect = document.getElementById('task-select');
+    const resultMonthly = document.getElementById('result-monthly');
+    const resultAnnual = document.getElementById('result-annual');
+    const resTime = document.getElementById('res-time');
+    const resROI = document.getElementById('res-roi');
+
+    if (!taskSelect) return {};
+
+    return {
+        task: taskSelect.value,
+        taskLabel: taskSelect.options[taskSelect.selectedIndex]?.text || '',
+        weeklyHours: document.getElementById('input-hours')?.value || '',
+        employees: document.getElementById('input-employees')?.value || '',
+        hourlyCost: document.getElementById('input-cost')?.value || '',
+        automatablePercent: document.getElementById('input-percent')?.value || '',
+        monthlySavings: resultMonthly?.textContent || '',
+        annualSavings: resultAnnual?.textContent || '',
+        recoveredTime: resTime?.textContent || '',
+        estimatedRoi: resROI?.textContent || ''
+    };
+};
 
 // --- Contact Form Logic ---
 const initContactForm = () => {
@@ -496,18 +676,138 @@ const initContactForm = () => {
     
     if (!contactForm) return;
 
+    // Custom Select Logic
+    const selectWrapper = document.querySelector('.custom-select-wrapper');
+    let resetCustomSelect = () => {};
+
+    if (selectWrapper) {
+        const select = selectWrapper.querySelector('.custom-select');
+        const trigger = selectWrapper.querySelector('.custom-select-trigger');
+        const options = selectWrapper.querySelectorAll('.custom-option');
+        const hiddenInput = selectWrapper.querySelector('input[name="service"]');
+        const triggerText = selectWrapper.querySelector('.custom-select-text');
+        const defaultText = triggerText.textContent;
+
+        const closeSelect = () => {
+            select.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        };
+
+        const openSelect = () => {
+            select.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+        };
+
+        const selectOption = (option) => {
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.setAttribute('aria-selected', 'false');
+            });
+
+            option.classList.add('selected');
+            option.setAttribute('aria-selected', 'true');
+
+            triggerText.textContent = option.textContent;
+            triggerText.style.color = 'var(--text-primary)';
+            trigger.style.borderColor = 'var(--accent-cyan)';
+
+            hiddenInput.value = option.getAttribute('data-value');
+            closeSelect();
+        };
+
+        resetCustomSelect = () => {
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.setAttribute('aria-selected', 'false');
+            });
+            triggerText.textContent = defaultText;
+            triggerText.style.color = '';
+            trigger.style.borderColor = '';
+            hiddenInput.value = '';
+            closeSelect();
+        };
+
+        trigger.addEventListener('click', () => {
+            if (select.classList.contains('open')) {
+                closeSelect();
+            } else {
+                openSelect();
+            }
+        });
+
+        trigger.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openSelect();
+                options[0]?.focus();
+            }
+            if (e.key === 'Escape') {
+                closeSelect();
+            }
+        });
+
+        options.forEach(option => {
+            option.setAttribute('aria-selected', 'false');
+
+            option.addEventListener('click', function() {
+                selectOption(this);
+            });
+
+            option.addEventListener('keydown', function(e) {
+                const optionList = Array.from(options);
+                const currentIndex = optionList.indexOf(this);
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    optionList[Math.min(currentIndex + 1, optionList.length - 1)]?.focus();
+                }
+
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    optionList[Math.max(currentIndex - 1, 0)]?.focus();
+                }
+
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectOption(this);
+                    trigger.focus();
+                }
+
+                if (e.key === 'Escape') {
+                    closeSelect();
+                    trigger.focus();
+                }
+            });
+        });
+
+        window.addEventListener('click', function(e) {
+            if (!selectWrapper.contains(e.target)) {
+                closeSelect();
+            }
+        });
+    }
+
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const formStatus = document.getElementById('form-status');
         const originalText = submitBtn.innerHTML;
 
         // Recopilar datos del formulario
         const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData.entries());
+        const data = {
+            ...Object.fromEntries(formData.entries()),
+            ...getTrackingData(),
+            calculator: getCalculatorSnapshot()
+        };
 
         // Visual feedback
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Enviando...';
+        if (formStatus) {
+            formStatus.textContent = '';
+            formStatus.className = 'form-status';
+        }
 
         try {
             const response = await fetch(CONTACT_WEBHOOK_URL, {
@@ -526,6 +826,11 @@ const initContactForm = () => {
             submitBtn.style.borderColor = '#10b981';
             submitBtn.style.color = '#fff';
             contactForm.reset();
+            resetCustomSelect();
+            if (formStatus) {
+                formStatus.textContent = 'Solicitud enviada. Te responderemos lo antes posible.';
+                formStatus.classList.add('success');
+            }
 
         } catch (error) {
             console.error('Error al enviar el formulario:', error);
@@ -533,6 +838,10 @@ const initContactForm = () => {
             submitBtn.style.background = '#ef4444';
             submitBtn.style.borderColor = '#ef4444';
             submitBtn.style.color = '#fff';
+            if (formStatus) {
+                formStatus.textContent = 'No se pudo enviar la solicitud. Inténtalo de nuevo en unos segundos.';
+                formStatus.classList.add('error');
+            }
         } finally {
             setTimeout(() => {
                 submitBtn.disabled = false;

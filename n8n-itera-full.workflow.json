@@ -1,0 +1,1601 @@
+{
+  "name": "ITERA Landing - Chat, Leads, Supabase y Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat_landing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -420
+      ],
+      "id": "b82d2104-da6e-40be-91b3-d0acc96750ec",
+      "name": "Chat Webhook",
+      "webhookId": "7194d4d3-bd27-4da7-ac9c-2a2494645337"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contact_landing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        260
+      ],
+      "id": "ce953042-974a-4e8a-918a-0855625c9e72",
+      "name": "Contact Webhook",
+      "webhookId": "c32f43d8-0927-4931-8732-5ac272984c89"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst message = String(body.message || '').trim();\nconst providedSessionId = body.sessionId || body.session_id || 'anonymous_' + Date.now();\nconst startsNewLead = /\\b(soy otro cliente|nuevo cliente|otra persona|empezar de cero|nueva conversaci[oó]n)\\b/i.test(message);\nconst sessionId = startsNewLead\n  ? providedSessionId + '_lead_' + Date.now()\n  : providedSessionId;\n\nreturn [{\n  json: {\n    session_id: sessionId,\n    message,\n    source: body.source || 'itera_landing',\n    page: body.page || '',\n    url: body.url || '',\n    referrer: body.referrer || '',\n    utm: body.utm || {},\n    raw: body\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        -420
+      ],
+      "id": "22f656f4-6aea-43d4-b572-cba7f210a373",
+      "name": "Normaliza chat"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst serviceMap = {\n  chatbots: 'Chatbots e IA Conversacional',\n  agents: 'Agentes Autónomos de Trabajo',\n  workflow: 'Automatización de Flujos',\n  consulting: 'Consultoría Estratégica de IA',\n  other: 'Otro Proyecto a Medida'\n};\nreturn [{\n  json: {\n    session_id: body.sessionId || body.session_id || 'contact_' + Date.now(),\n    nombre: body.name || body.nombre || '',\n    email: body.email || '',\n    telefono: body.phone || body.telefono || '',\n    empresa: body.company || body.empresa || '',\n    servicio_interes: serviceMap[body.service] || body.service || '',\n    mensaje: body.message || body.mensaje || '',\n    estado_lead: 'nuevo',\n    lead_score: body.email ? 55 : 35,\n    source: body.source || 'itera_landing',\n    page: body.page || '',\n    url: body.url || '',\n    referrer: body.referrer || '',\n    utm: body.utm || {},\n    calculator: body.calculator || {},\n    metadata: body\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        260
+      ],
+      "id": "7a8b315a-da29-487f-aa2d-3528a645de59",
+      "name": "Normaliza contacto"
+    },
+    {
+      "parameters": {
+        "tableId": "conversaciones",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $json.session_id }}"
+            },
+            {
+              "fieldId": "role",
+              "fieldValue": "user"
+            },
+            {
+              "fieldId": "mensaje",
+              "fieldValue": "={{ $json.message }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ $json.raw }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        440,
+        -420
+      ],
+      "id": "bedaebd7-4098-45d5-ad45-ef6dbb993f3b",
+      "name": "Guarda mensaje usuario",
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "conversaciones",
+        "filterType": "none",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        660,
+        -420
+      ],
+      "id": "eef9138a-b01e-4af8-befc-5c1aa43664e5",
+      "name": "Busca conversaciones",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "leads",
+        "filterType": "none",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -420
+      ],
+      "id": "c079a5e4-1821-4d93-a6fd-9866149efd5e",
+      "name": "Busca leads sesión",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionId = $('Normaliza chat').first().json.session_id;\nconst conversationRows = $('Busca conversaciones').all()\n  .map(item => item.json)\n  .filter(row => row.session_id === sessionId)\n  .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0))\n  .slice(-10);\nconst leadRows = $input.all()\n  .map(item => item.json)\n  .filter(row => row.session_id === sessionId)\n  .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));\nconst latestLead = leadRows[0] || {};\n\nreturn [{\n  json: {\n    session_id: sessionId,\n    message: $('Normaliza chat').first().json.message,\n    lead_state: {\n      nombre: latestLead.nombre || '',\n      email: latestLead.email || '',\n      telefono: latestLead.telefono || '',\n      empresa: latestLead.empresa || '',\n      cargo: latestLead.cargo || '',\n      necesidad: latestLead.necesidad || '',\n      servicio_interes: latestLead.servicio_interes || '',\n      presupuesto: latestLead.presupuesto || '',\n      urgencia: latestLead.urgencia || '',\n      tamano_empresa: latestLead.tamano_empresa || '',\n      estado_lead: latestLead.estado_lead || '',\n      lead_score: latestLead.lead_score || 0,\n      resumen: latestLead.resumen || ''\n    },\n    history: conversationRows.map(row => ({\n      role: row.role,\n      content: row.mensaje\n    }))\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -420
+      ],
+      "id": "0782ee9a-e718-4e55-bccb-7a3d5e886834",
+      "name": "Construye contexto"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Extrae, acumula y clasifica información comercial de toda la conversación. Devuelve SOLO JSON válido con campos: nombre, email, telefono, empresa, cargo, necesidad, servicio_interes, presupuesto, urgencia, tamano_empresa, estado_lead, lead_score, resumen. Si un dato no aparece, usa cadena vacía. lead_score debe ser 0-100. estado_lead: nuevo, frio, templado, caliente, demo_solicitada. No inventes citas ni datos no proporcionados."
+            },
+            {
+              "content": "={{ JSON.stringify($(\"Construye contexto\").item.json) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1100,
+        -540
+      ],
+      "id": "7cd8aeb0-69e9-45bd-8c7c-bf07cf7f996e",
+      "name": "Interpreta lead del chat",
+      "credentials": {
+        "openAiApi": {
+          "id": "fPLCmYrRdegbfkqy",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output?.[0]?.content?.[0]?.text || '{}';\nlet extracted = {};\ntry {\n  extracted = JSON.parse(raw);\n} catch (error) {}\n\nconst context = $('Construye contexto').first().json;\nconst current = $('Normaliza chat').first().json;\nconst state = context.lead_state || {};\nconst currentText = current.message || '';\nconst historyText = [\n  ...(context.history || []).map(item => item.content || ''),\n  currentText\n].join('\\n');\n\nconst findEmail = text => text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i)?.[0] || '';\nconst findPhone = text => text.match(/(?:\\+?\\d[\\d\\s().-]{7,}\\d)/)?.[0]?.trim() || '';\nconst findCompany = text => {\n  const explicit = text.match(/(?:mi empresa es|empresa es|somos|trabajo en|empresa:)\\s*([^\\n.,;]+)/i)?.[1]?.trim();\n  if (explicit) return explicit;\n  return /\\b[A-ZÃÃ‰ÃÃ“ÃšÃ‘a-zÃ¡Ã©Ã­Ã³ÃºÃ±0-9 .-]+\\s+s\\.?\\s*[al]\\.?\\b/i.exec(text)?.[0]?.trim() || '';\n};\nconst findName = text => text.match(/(?:soy|me llamo|mi nombre es)\\s+([^\\n.,;]+)/i)?.[1]?.trim() || '';\nconst findKnownName = text => text.match(/[¡!]?Hola,?\\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\\b/)?.[1]?.trim() || '';\nconst findStandaloneName = text => {\n  const clean = text.trim();\n  if (!/^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ]+(?:\\s+(?:de|del|la|las|los|y|[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ]+)){1,5}$/i.test(clean)) return '';\n  if (/@|\\d|cita|demo|agendar|mañana|tarde|hora|empresa|email|tel[eé]fono/i.test(clean)) return '';\n  return clean;\n};\n\nconst findService = text => {\n  if (/chatbot|chat bot|asistente|ia conversacional/i.test(text)) return 'Chatbots e IA Conversacional';\n  if (/automatiz|workflow|flujo|n8n|make/i.test(text)) return 'AutomatizaciÃ³n de Flujos';\n  if (/crm|gesti[oÃ³]n de leads|captaci[oÃ³]n de leads/i.test(text)) return 'CRM y gestiÃ³n de leads';\n  return '';\n};\nconst currentEmail = findEmail(currentText);\nconst currentPhone = findPhone(currentText);\nconst currentCompany = findCompany(currentText);\nconst currentName = findName(currentText) || findStandaloneName(currentText);\nconst currentService = findService(currentText);\n\nconst email = currentEmail || extracted.email || state.email || findEmail(historyText);\nconst telefono = currentPhone || extracted.telefono || state.telefono || findPhone(historyText);\nconst empresa = currentCompany || extracted.empresa || state.empresa || findCompany(historyText);\nconst nombre = currentName || extracted.nombre || state.nombre || findName(historyText) || findKnownName(historyText);\nconst inferredService = currentService || extracted.servicio_interes || state.servicio_interes || findService(historyText);\nconst necesidad = extracted.necesidad || state.necesidad || currentText;\nconst newDataFields = [\n  currentEmail && 'email',\n  currentPhone && 'telefono',\n  currentCompany && 'empresa',\n  currentName && 'nombre',\n  currentService && 'servicio_interes'\n].filter(Boolean);\nconst hasNewLeadData = newDataFields.length > 0;\nconst hasStrongData = Boolean(email || telefono || empresa || nombre);\nconst scoreBase = Number(extracted.lead_score || 0);\nconst leadScore = Math.max(Number(state.lead_score || 0), scoreBase, (email ? 30 : 0) + (telefono ? 25 : 0) + (empresa ? 20 : 0) + (inferredService ? 15 : 0) + 10);\n\nreturn [{\n  json: {\n    session_id: current.session_id,\n    nombre,\n    email,\n    telefono,\n    empresa,\n    cargo: extracted.cargo || state.cargo || '',\n    necesidad,\n    servicio_interes: inferredService,\n    presupuesto: extracted.presupuesto || state.presupuesto || '',\n    urgencia: extracted.urgencia || state.urgencia || '',\n    tamano_empresa: extracted.tamano_empresa || state.tamano_empresa || '',\n    estado_lead: extracted.estado_lead || state.estado_lead || (hasStrongData ? 'caliente' : 'templado'),\n    lead_score: Math.min(100, leadScore),\n    has_new_lead_data: hasNewLeadData,\n    new_data_fields: newDataFields,\n    resumen: extracted.resumen || necesidad,\n    source: current.source,\n    page: current.page,\n    url: current.url,\n    referrer: current.referrer,\n    utm: current.utm,\n    metadata: {\n      ...current.raw,\n      extraction: extracted,\n      history: context.history || []\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -540
+      ],
+      "id": "9c0a60da-bf59-426d-8331-643a3d3567dc",
+      "name": "Prepara lead chat"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-new-lead-data",
+              "leftValue": "={{ $json.has_new_lead_data }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -540
+      ],
+      "id": "38d21f3e-6747-46dc-99bf-17553f45deaa",
+      "name": "Hay datos nuevos de lead?"
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $json.session_id }}"
+            },
+            {
+              "fieldId": "nombre",
+              "fieldValue": "={{ $json.nombre }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $json.email }}"
+            },
+            {
+              "fieldId": "telefono",
+              "fieldValue": "={{ $json.telefono }}"
+            },
+            {
+              "fieldId": "empresa",
+              "fieldValue": "={{ $json.empresa }}"
+            },
+            {
+              "fieldId": "cargo",
+              "fieldValue": "={{ $json.cargo }}"
+            },
+            {
+              "fieldId": "necesidad",
+              "fieldValue": "={{ $json.necesidad }}"
+            },
+            {
+              "fieldId": "servicio_interes",
+              "fieldValue": "={{ $json.servicio_interes }}"
+            },
+            {
+              "fieldId": "presupuesto",
+              "fieldValue": "={{ $json.presupuesto }}"
+            },
+            {
+              "fieldId": "urgencia",
+              "fieldValue": "={{ $json.urgencia }}"
+            },
+            {
+              "fieldId": "tamano_empresa",
+              "fieldValue": "={{ $json.tamano_empresa }}"
+            },
+            {
+              "fieldId": "estado_lead",
+              "fieldValue": "={{ $json.estado_lead }}"
+            },
+            {
+              "fieldId": "lead_score",
+              "fieldValue": "={{ $json.lead_score }}"
+            },
+            {
+              "fieldId": "resumen",
+              "fieldValue": "={{ $json.resumen }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $json.source }}"
+            },
+            {
+              "fieldId": "page",
+              "fieldValue": "={{ $json.page }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "referrer",
+              "fieldValue": "={{ $json.referrer }}"
+            },
+            {
+              "fieldId": "utm",
+              "fieldValue": "={{ $json.utm }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ $json.metadata }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        -640
+      ],
+      "id": "6edb2e2d-5c79-4413-9483-9beec6c3b19c",
+      "name": "Guarda lead chat",
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fecha-chat",
+              "name": "Fecha",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "origen-chat",
+              "name": "Origen",
+              "value": "chat",
+              "type": "string"
+            },
+            {
+              "id": "nombre-chat",
+              "name": "Nombre",
+              "value": "={{ $(\"Prepara lead chat\").item.json.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "email-chat",
+              "name": "Email",
+              "value": "={{ $(\"Prepara lead chat\").item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "telefono-chat",
+              "name": "Telefono",
+              "value": "={{ $(\"Prepara lead chat\").item.json.telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "empresa-chat",
+              "name": "Empresa",
+              "value": "={{ $(\"Prepara lead chat\").item.json.empresa }}",
+              "type": "string"
+            },
+            {
+              "id": "servicio-chat",
+              "name": "Servicio",
+              "value": "={{ $(\"Prepara lead chat\").item.json.servicio_interes }}",
+              "type": "string"
+            },
+            {
+              "id": "necesidad-chat",
+              "name": "Necesidad",
+              "value": "={{ $(\"Prepara lead chat\").item.json.necesidad }}",
+              "type": "string"
+            },
+            {
+              "id": "estado-chat",
+              "name": "Estado",
+              "value": "={{ $(\"Prepara lead chat\").item.json.estado_lead }}",
+              "type": "string"
+            },
+            {
+              "id": "score-chat",
+              "name": "Score",
+              "value": "={{ $(\"Prepara lead chat\").item.json.lead_score }}",
+              "type": "number"
+            },
+            {
+              "id": "session-chat",
+              "name": "Session",
+              "value": "={{ $(\"Prepara lead chat\").item.json.session_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1980,
+        -640
+      ],
+      "id": "6b735418-c164-4c80-99ee-fd317e059cbf",
+      "name": "Prepara fila Sheets chat"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rViutg_M2NxV2_-ojCstpvVj3kFCYO5ea38oeZtFRMY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Empresa",
+              "displayName": "Empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Servicio",
+              "displayName": "Servicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Necesidad",
+              "displayName": "Necesidad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Session",
+              "displayName": "Session",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2200,
+        -640
+      ],
+      "id": "e939a5e6-a17d-4ca0-9d88-bd2144a35e1f",
+      "name": "Añade lead chat a Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmDCf3O4scuqkgL0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Detecta si el usuario quiere agendar una llamada/cita/demo o si ya hay una solicitud de cita pendiente en el historial. Devuelve SOLO JSON válido: {\"wants_meeting\": boolean, \"requested_start_iso\": \"\", \"requested_date\": \"\", \"requested_time\": \"\", \"timezone\": \"Europe/Madrid\", \"missing\": [], \"notes\": \"\"}. Si en el historial ya hay una cita pendiente y el mensaje actual solo aporta un dato faltante, mantiene wants_meeting=true y conserva la fecha/hora ya indicada anteriormente. Si el usuario confirma una hora propuesta antes en el historial, usa esa fecha/hora como requested_start_iso. Si el usuario dice \"mañana\", interpreta mañana respecto a now en Europe/Madrid. Si no hay fecha u hora claras, wants_meeting puede ser true pero requested_start_iso debe ir vacío y missing debe incluir fecha_hora. La cita siempre dura 15 minutos."
+            },
+            {
+              "content": "={{ JSON.stringify({ now: $now, contexto: $(\"Construye contexto\").item.json, lead: $(\"Prepara lead chat\").item.json }) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        2420,
+        -540
+      ],
+      "id": "476c076d-5c21-470d-877e-566fa4609826",
+      "name": "Interpreta solicitud de cita",
+      "credentials": {
+        "openAiApi": {
+          "id": "fPLCmYrRdegbfkqy",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output?.[0]?.content?.[0]?.text || '{}';\nlet data = {};\ntry {\n  data = JSON.parse(raw);\n} catch (error) {}\n\nconst timezone = data.timezone || 'Europe/Madrid';\nconst lead = $('Prepara lead chat').first().json;\nconst context = $('Construye contexto').first().json;\nconst historyText = [\n  ...(context.history || []).map(item => item.content || ''),\n  context.message || ''\n].join('\\n');\n\nconst resolveRequestedStart = () => {\n  if (data.requested_start_iso) {\n    const direct = new Date(data.requested_start_iso);\n    if (!Number.isNaN(direct.getTime())) return direct;\n  }\n\n  const explicit = historyText.match(/(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4}).{0,24}?(?:a\\s+las\\s+)?(\\d{1,2})(?::(\\d{2}))?/i);\n  if (explicit) {\n    const [, day, month, year, hour, minute = '00'] = explicit;\n    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), 0, 0);\n  }\n\n  const tomorrow = historyText.match(/ma[ñn]ana.{0,40}?(?:a\\s+las\\s+)?(\\d{1,2})(?::(\\d{2}))?\\s*(de\\s+la\\s+tarde|pm)?/i);\n  if (tomorrow) {\n    const now = new Date();\n    let hour = Number(tomorrow[1]);\n    const minute = Number(tomorrow[2] || 0);\n    if ((tomorrow[3] || '').toLowerCase().includes('tarde') && hour < 12) hour += 12;\n    const start = new Date(now);\n    start.setDate(start.getDate() + 1);\n    start.setHours(hour, minute, 0, 0);\n    return start;\n  }\n\n  return null;\n};\n\nconst requestedStart = resolveRequestedStart();\nconst hasValidStart = requestedStart && !Number.isNaN(requestedStart.getTime());\nconst leadMissingFields = [\n  !lead.nombre && 'nombre',\n  !lead.email && 'email',\n  !lead.telefono && 'telefono',\n  !lead.empresa && 'empresa',\n  !lead.servicio_interes && 'servicio_interes'\n].filter(Boolean);\nconst meetingMissingFields = [\n  ...leadMissingFields,\n  !hasValidStart && 'fecha_hora'\n];\n\nlet dayStart;\nif (hasValidStart) {\n  dayStart = new Date(requestedStart);\n} else {\n  dayStart = new Date();\n}\ndayStart.setHours(0, 0, 0, 0);\n\nconst dayEnd = new Date(dayStart);\ndayEnd.setHours(23, 59, 59, 999);\n\nreturn [{\n  json: {\n    wants_meeting: Boolean(data.wants_meeting),\n    requested_start_iso: hasValidStart ? requestedStart.toISOString() : '',\n    requested_end_iso: hasValidStart ? new Date(requestedStart.getTime() + 15 * 60 * 1000).toISOString() : '',\n    day_start_iso: dayStart.toISOString(),\n    day_end_iso: dayEnd.toISOString(),\n    timezone,\n    missing: Array.from(new Set([...(data.missing || []), ...meetingMissingFields])),\n    lead_missing_fields: leadMissingFields,\n    meeting_missing_fields: meetingMissingFields,\n    ready_to_book: Boolean(data.wants_meeting) && meetingMissingFields.length === 0,\n    notes: data.notes || '',\n    lead\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        -540
+      ],
+      "id": "0fa7f7d6-da17-4434-b7cc-a396c782b4a7",
+      "name": "Prepara consulta Calendar"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "ready-to-book",
+              "leftValue": "={{ $json.ready_to_book }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        -540
+      ],
+      "id": "c3ede457-ef96-4982-b5b8-e705bb949f44",
+      "name": "¿Quiere cita?"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "alexdelrosalmoreno@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alexdelrosalmoreno@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ $json.day_start_iso }}",
+        "timeMax": "={{ $json.day_end_iso }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        2860,
+        -660
+      ],
+      "id": "223f16a4-97d9-4bcd-bfb9-dbffc38cb7d4",
+      "name": "Busca eventos del día",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "OWHZYinHeNu7dcrB",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $('Prepara consulta Calendar').first().json;\nconst events = $input.all().map(item => item.json);\nconst durationMs = 15 * 60 * 1000;\nconst requestedStart = request.requested_start_iso ? new Date(request.requested_start_iso) : null;\n\nconst busy = events\n  .map(event => ({\n    start: new Date(event.start?.dateTime || event.start?.date || event.startTime || event.start),\n    end: new Date(event.end?.dateTime || event.end?.date || event.endTime || event.end)\n  }))\n  .filter(slot => !Number.isNaN(slot.start.getTime()) && !Number.isNaN(slot.end.getTime()));\n\nconst overlaps = (start, end) => busy.some(slot => start < slot.end && end > slot.start);\nconst businessStart = new Date(request.day_start_iso);\nbusinessStart.setHours(9, 0, 0, 0);\nconst businessEnd = new Date(request.day_start_iso);\nbusinessEnd.setHours(18, 0, 0, 0);\n\nconst findSlot = () => {\n  for (let t = new Date(businessStart); t.getTime() + durationMs <= businessEnd.getTime(); t = new Date(t.getTime() + durationMs)) {\n    const end = new Date(t.getTime() + durationMs);\n    if (!overlaps(t, end)) return { start: t, end };\n  }\n  return null;\n};\n\nif ((request.meeting_missing_fields || []).length > 0) {\n  const alternative = findSlot();\n  return [{\n    json: {\n      ...request,\n      calendar_status: 'missing_required_data',\n      should_create_event: false,\n      proposed_start_iso: alternative?.start.toISOString() || '',\n      proposed_end_iso: alternative?.end.toISOString() || '',\n      message: 'Faltan datos obligatorios para agendar. Pide todos los datos faltantes en una sola respuesta.'\n    }\n  }];\n}\n\nif (!request.requested_start_iso || !requestedStart || Number.isNaN(requestedStart.getTime())) {\n  const alternative = findSlot();\n  return [{\n    json: {\n      ...request,\n      calendar_status: 'missing_datetime',\n      should_create_event: false,\n      proposed_start_iso: alternative?.start.toISOString() || '',\n      proposed_end_iso: alternative?.end.toISOString() || '',\n      message: alternative\n        ? 'El usuario quiere cita pero falta una fecha/hora clara. Ofrece este hueco disponible.'\n        : 'El usuario quiere cita pero falta una fecha/hora clara y no hay huecos disponibles hoy.'\n    }\n  }];\n}\n\nconst requestedEnd = new Date(requestedStart.getTime() + durationMs);\nif (!overlaps(requestedStart, requestedEnd)) {\n  return [{\n    json: {\n      ...request,\n      calendar_status: 'available',\n      should_create_event: true,\n      event_start_iso: requestedStart.toISOString(),\n      event_end_iso: requestedEnd.toISOString(),\n      proposed_start_iso: '',\n      proposed_end_iso: '',\n      message: 'El hueco solicitado está disponible. Crea la cita.'\n    }\n  }];\n}\n\nconst alternative = findSlot();\nreturn [{\n  json: {\n    ...request,\n    calendar_status: 'busy',\n    should_create_event: false,\n    proposed_start_iso: alternative?.start.toISOString() || '',\n    proposed_end_iso: alternative?.end.toISOString() || '',\n    message: alternative\n      ? 'El hueco solicitado está ocupado. Propón la alternativa disponible.'\n      : 'El hueco solicitado está ocupado y no hay más huecos libres ese día.'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        -660
+      ],
+      "id": "2ec7746f-4d0b-471e-b03e-c21ab56d0e39",
+      "name": "Decide hueco Calendar"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "create-event",
+              "leftValue": "={{ $json.should_create_event }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3300,
+        -660
+      ],
+      "id": "7f964b23-24d6-4cee-a460-43e2e5814c4d",
+      "name": "¿Crear evento?"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendar": {
+          "__rl": true,
+          "value": "alexdelrosalmoreno@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alexdelrosalmoreno@gmail.com"
+        },
+        "start": "={{ $json.event_start_iso }}",
+        "end": "={{ $json.event_end_iso }}",
+        "additionalFields": {
+          "summary": "={{ \"Llamada ITERA - \" + ($json.lead.nombre || $json.lead.empresa || \"Lead web\") }}",
+          "description": "={{ \"Lead desde la landing ITERA\\nNombre: \" + ($json.lead.nombre || \"\") + \"\\nEmail: \" + ($json.lead.email || \"\") + \"\\nTeléfono: \" + ($json.lead.telefono || \"\") + \"\\nEmpresa: \" + ($json.lead.empresa || \"\") + \"\\nNecesidad: \" + ($json.lead.necesidad || \"\") }}",
+          "attendees": "={{ $json.lead.email ? [{ email: $json.lead.email }] : [] }}",
+          "sendUpdates": "all",
+          "useDefaultReminders": false,
+          "remindersUi": {
+            "remindersValues": [
+              {
+                "method": "email",
+                "minutes": 2880
+              },
+              {
+                "method": "popup",
+                "minutes": 2880
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        3520,
+        -760
+      ],
+      "id": "df878823-1fcd-4d11-99a3-abc09eae44fe",
+      "name": "Crea cita Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "OWHZYinHeNu7dcrB",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let calendarContext = $json || {};\n\ntry {\n  const decision = $('Decide hueco Calendar').first().json;\n  if (decision?.calendar_status) {\n    calendarContext = {\n      ...decision,\n      created_event: $json?.id || $json?.htmlLink\n        ? {\n            id: $json.id || '',\n            htmlLink: $json.htmlLink || '',\n            summary: $json.summary || '',\n            start: $json.start || {},\n            end: $json.end || {}\n          }\n        : null\n    };\n  }\n} catch (error) {\n  // The meeting branch did not run.\n}\n\nif (!calendarContext.calendar_status) {\n  if (calendarContext.wants_meeting) {\n    calendarContext = {\n      ...calendarContext,\n      calendar_status: 'missing_required_data',\n      should_create_event: false,\n      message: 'Faltan datos obligatorios para agendar. Pide todos los datos faltantes en una sola respuesta.'\n    };\n  } else {\n    calendarContext = {\n      calendar_status: 'not_requested',\n      should_create_event: false,\n      meeting_missing_fields: [],\n      message: 'El usuario no ha pedido cita en este mensaje.'\n    };\n  }\n}\n\nreturn [{ json: { calendar_context: calendarContext } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3740,
+        -540
+      ],
+      "id": "60596b73-ae29-4691-bd6d-7eec8334c3a8",
+      "name": "Contexto agenda"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "={{ \"Eres el asistente comercial oficial de ITERA. Responde en español, breve, claro y cercano. Tu objetivo es convertir solicitudes de cita en reuniones reales. Para agendar necesitas estos datos obligatorios: nombre, email, teléfono, empresa, servicio/interés y fecha+hora. Si el usuario quiere cita y calendar_context.meeting_missing_fields tiene valores, pide TODOS esos datos faltantes en una sola respuesta, con una frase natural y sin pedir datos que ya existan en lead. Si lead.nombre, lead.email, lead.telefono, lead.empresa o lead.servicio_interes ya existen, no los vuelvas a pedir: úsalos como datos confirmados salvo que el usuario los corrija. Si ya has saludado al usuario por su nombre en el historial, no vuelvas a pedir el nombre. No inventes citas ni horarios. Solo puedes decir que una cita está agendada si calendar_context.created_event existe con id o htmlLink. Si calendar_context.calendar_status es available pero created_event está vacío, di que el hueco está libre pero que no has podido crear todavía el evento y pide revisar Calendar. Si calendar_context.calendar_status es busy, ofrece proposed_start_iso como alternativa si existe. Usa este contexto sin inventar datos: \" + JSON.stringify({ contexto: $(\"Construye contexto\").item.json, lead: $(\"Prepara lead chat\").item.json, calendar_context: $(\"Contexto agenda\").item.json.calendar_context }) }}"
+            },
+            {
+              "content": "={{ $(\"Normaliza chat\").item.json.message }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3960,
+        -540
+      ],
+      "id": "dab79237-debe-4bbd-ba41-8f49f16675e6",
+      "name": "Agente comercial ITERA",
+      "credentials": {
+        "openAiApi": {
+          "id": "fPLCmYrRdegbfkqy",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "conversaciones",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $(\"Normaliza chat\").item.json.session_id }}"
+            },
+            {
+              "fieldId": "role",
+              "fieldValue": "assistant"
+            },
+            {
+              "fieldId": "mensaje",
+              "fieldValue": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        -260
+      ],
+      "id": "46af4b30-a4b3-46e0-8f63-9ce143170fa8",
+      "name": "Guarda respuesta asistente",
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "reply",
+              "name": "reply",
+              "value": "={{ $(\"Agente comercial ITERA\").item.json.output[0].content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "name": "sessionId",
+              "value": "={{ $(\"Normaliza chat\").item.json.session_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        -260
+      ],
+      "id": "c018bab0-6e86-476d-8d64-e9f8d851af3f",
+      "name": "Prepara respuesta chat"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.toJsonString() }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1760,
+        -260
+      ],
+      "id": "f481bebe-00cd-4930-b209-3368a87938fb",
+      "name": "Respond Chat"
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $json.session_id }}"
+            },
+            {
+              "fieldId": "nombre",
+              "fieldValue": "={{ $json.nombre }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $json.email }}"
+            },
+            {
+              "fieldId": "telefono",
+              "fieldValue": "={{ $json.telefono }}"
+            },
+            {
+              "fieldId": "empresa",
+              "fieldValue": "={{ $json.empresa }}"
+            },
+            {
+              "fieldId": "necesidad",
+              "fieldValue": "={{ $json.mensaje }}"
+            },
+            {
+              "fieldId": "servicio_interes",
+              "fieldValue": "={{ $json.servicio_interes }}"
+            },
+            {
+              "fieldId": "estado_lead",
+              "fieldValue": "={{ $json.estado_lead }}"
+            },
+            {
+              "fieldId": "lead_score",
+              "fieldValue": "={{ $json.lead_score }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $json.source }}"
+            },
+            {
+              "fieldId": "page",
+              "fieldValue": "={{ $json.page }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "referrer",
+              "fieldValue": "={{ $json.referrer }}"
+            },
+            {
+              "fieldId": "utm",
+              "fieldValue": "={{ $json.utm }}"
+            },
+            {
+              "fieldId": "calculator",
+              "fieldValue": "={{ $json.calculator }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ $json.metadata }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        440,
+        260
+      ],
+      "id": "5ab5d10b-c51b-4234-b8d7-e7995d8a3f3a",
+      "name": "Guarda lead contacto",
+      "credentials": {
+        "supabaseApi": {
+          "id": "I48prMiaTnjcdPSf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fecha-contacto",
+              "name": "Fecha",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "origen-contacto",
+              "name": "Origen",
+              "value": "formulario",
+              "type": "string"
+            },
+            {
+              "id": "nombre-contacto",
+              "name": "Nombre",
+              "value": "={{ $(\"Normaliza contacto\").item.json.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "email-contacto",
+              "name": "Email",
+              "value": "={{ $(\"Normaliza contacto\").item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "telefono-contacto",
+              "name": "Telefono",
+              "value": "={{ $(\"Normaliza contacto\").item.json.telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "empresa-contacto",
+              "name": "Empresa",
+              "value": "={{ $(\"Normaliza contacto\").item.json.empresa }}",
+              "type": "string"
+            },
+            {
+              "id": "servicio-contacto",
+              "name": "Servicio",
+              "value": "={{ $(\"Normaliza contacto\").item.json.servicio_interes }}",
+              "type": "string"
+            },
+            {
+              "id": "necesidad-contacto",
+              "name": "Necesidad",
+              "value": "={{ $(\"Normaliza contacto\").item.json.mensaje }}",
+              "type": "string"
+            },
+            {
+              "id": "estado-contacto",
+              "name": "Estado",
+              "value": "={{ $(\"Normaliza contacto\").item.json.estado_lead }}",
+              "type": "string"
+            },
+            {
+              "id": "score-contacto",
+              "name": "Score",
+              "value": "={{ $(\"Normaliza contacto\").item.json.lead_score }}",
+              "type": "number"
+            },
+            {
+              "id": "session-contacto",
+              "name": "Session",
+              "value": "={{ $(\"Normaliza contacto\").item.json.session_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        160
+      ],
+      "id": "0427262e-97fb-467e-9ad6-004b81fab3fe",
+      "name": "Prepara fila Sheets contacto"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rViutg_M2NxV2_-ojCstpvVj3kFCYO5ea38oeZtFRMY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Empresa",
+              "displayName": "Empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Servicio",
+              "displayName": "Servicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Necesidad",
+              "displayName": "Necesidad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Session",
+              "displayName": "Session",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        160
+      ],
+      "id": "d100b8b9-57ba-4aaf-bb64-9da13e969c1a",
+      "name": "Añade contacto a Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmDCf3O4scuqkgL0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ ({ ok: true, message: \"Solicitud recibida correctamente\", sessionId: $(\"Normaliza contacto\").item.json.session_id }).toJsonString() }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        660,
+        360
+      ],
+      "id": "9b7cf5ff-924e-4d39-97cf-382e4c2decfe",
+      "name": "Respond Contact"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normaliza chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliza chat": {
+      "main": [
+        [
+          {
+            "node": "Guarda mensaje usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guarda mensaje usuario": {
+      "main": [
+        [
+          {
+            "node": "Busca conversaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca conversaciones": {
+      "main": [
+        [
+          {
+            "node": "Busca leads sesión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca leads sesión": {
+      "main": [
+        [
+          {
+            "node": "Construye contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construye contexto": {
+      "main": [
+        [
+          {
+            "node": "Interpreta lead del chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpreta lead del chat": {
+      "main": [
+        [
+          {
+            "node": "Prepara lead chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara lead chat": {
+      "main": [
+        [
+          {
+            "node": "Hay datos nuevos de lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay datos nuevos de lead?": {
+      "main": [
+        [
+          {
+            "node": "Guarda lead chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Interpreta solicitud de cita",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guarda lead chat": {
+      "main": [
+        [
+          {
+            "node": "Prepara fila Sheets chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara fila Sheets chat": {
+      "main": [
+        [
+          {
+            "node": "Añade lead chat a Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Añade lead chat a Sheets": {
+      "main": [
+        [
+          {
+            "node": "Interpreta solicitud de cita",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpreta solicitud de cita": {
+      "main": [
+        [
+          {
+            "node": "Prepara consulta Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara consulta Calendar": {
+      "main": [
+        [
+          {
+            "node": "¿Quiere cita?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Quiere cita?": {
+      "main": [
+        [
+          {
+            "node": "Busca eventos del día",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contexto agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca eventos del día": {
+      "main": [
+        [
+          {
+            "node": "Decide hueco Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide hueco Calendar": {
+      "main": [
+        [
+          {
+            "node": "¿Crear evento?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Crear evento?": {
+      "main": [
+        [
+          {
+            "node": "Crea cita Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contexto agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crea cita Calendar": {
+      "main": [
+        [
+          {
+            "node": "Contexto agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto agenda": {
+      "main": [
+        [
+          {
+            "node": "Agente comercial ITERA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente comercial ITERA": {
+      "main": [
+        [
+          {
+            "node": "Guarda respuesta asistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guarda respuesta asistente": {
+      "main": [
+        [
+          {
+            "node": "Prepara respuesta chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara respuesta chat": {
+      "main": [
+        [
+          {
+            "node": "Respond Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normaliza contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliza contacto": {
+      "main": [
+        [
+          {
+            "node": "Guarda lead contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guarda lead contacto": {
+      "main": [
+        [
+          {
+            "node": "Prepara fila Sheets contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara fila Sheets contacto": {
+      "main": [
+        [
+          {
+            "node": "Añade contacto a Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Añade contacto a Sheets": {
+      "main": [
+        [
+          {
+            "node": "Respond Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": true
+  },
+  "versionId": "00cbfaaf-5162-4b9d-ad93-482ff86f9002",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a7d0b6527621f43591eff4368888abb25ef8f35f8674ae639b5b19f82104998"
+  },
+  "id": "6Byw9y2hxddzyhIL",
+  "tags": []
+}
