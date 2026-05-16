@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+node_modules
+.npm
+outputs
+*.log
+Dockerfile
+docker-compose.yml
+README.md
+N8N_SETUP.md
+supabase_schema.sql
+tools
+n8n-itera-full.workflow.json
