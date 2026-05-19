@@ -80,7 +80,7 @@ const chatInput = document.getElementById('chat-input');
 const chatSubmit = document.getElementById('chat-submit');
 const heroCta = document.getElementById('hero-cta');
 
-const N8N_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/chat_landing_agent';
+const N8N_WEBHOOK_URL = 'https://itera-web-n8n.tkvoes.easypanel.host/webhook/4b52277b-7ace-45c6-8e9d-368a92eb9e15';
 
 const SESSION_TTL_MS = 30 * 60 * 1000;
 
@@ -627,7 +627,7 @@ const initCookies = () => {
     }
 };
 
-const CONTACT_WEBHOOK_URL = 'https://elkta.app.n8n.cloud/webhook/contact_landing';
+const CONTACT_WEBHOOK_URL = 'https://itera-web-n8n.tkvoes.easypanel.host/webhook/formulario-itera';
 
 const getTrackingData = () => {
     const params = new URLSearchParams(window.location.search);
