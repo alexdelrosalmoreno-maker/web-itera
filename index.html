@@ -272,7 +272,8 @@
 
                     <div class="calc-cta">
                         <p>¿Quieres recuperar estas horas hoy mismo?</p>
-                        <a href="#contact" class="btn btn-neon" id="calculator-cta">Solicitar Automatización Personalizada</a>
+                        <a href="#contact" class="btn btn-neon" id="calculator-cta">Solicitar Automatización
+                            Personalizada</a>
                     </div>
                 </div>
             </div>
@@ -411,14 +412,14 @@
             </div>
 
             <div class="contact-container">
-                <form id="contact-form" class="contact-form glass-panel">
+                <form id="contact-form" class="contact-form glass-panel" novalidate>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="name">Nombre Completo</label>
+                            <label for="name">Nombre Completo <span class="required-star">*</span></label>
                             <input type="text" id="name" name="name" placeholder="Tu nombre" required>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email Corporativo</label>
+                            <label for="email">Email <span class="required-star">*</span></label>
                             <input type="email" id="email" name="email" placeholder="nombre@empresa.com" required>
                         </div>
                         <div class="form-group">
@@ -432,7 +433,7 @@
                     </div>
 
                     <div class="form-group custom-dropdown-group">
-                        <label id="service-label">Servicio de Interés</label>
+                        <label id="service-label">Servicio de Interés <span class="required-star">*</span></label>
                         <div class="custom-select-wrapper">
                             <div class="custom-select" id="service-custom-select">
                                 <button class="custom-select-trigger" type="button" aria-haspopup="listbox"
@@ -441,11 +442,16 @@
                                     <i data-lucide="chevron-down"></i>
                                 </button>
                                 <div class="custom-options" role="listbox" aria-labelledby="service-label">
-                                    <button class="custom-option" type="button" role="option" data-value="chatbots">Chatbots e IA Conversacional</button>
-                                    <button class="custom-option" type="button" role="option" data-value="agents">Agentes Autónomos de Trabajo</button>
-                                    <button class="custom-option" type="button" role="option" data-value="workflow">Automatización de Flujos (n8n/Make)</button>
-                                    <button class="custom-option" type="button" role="option" data-value="consulting">Consultoría Estratégica de IA</button>
-                                    <button class="custom-option" type="button" role="option" data-value="other">Otro Proyecto a Medida</button>
+                                    <button class="custom-option" type="button" role="option"
+                                        data-value="chatbots">Chatbots e IA Conversacional</button>
+                                    <button class="custom-option" type="button" role="option"
+                                        data-value="agents">Agentes Autónomos de Trabajo</button>
+                                    <button class="custom-option" type="button" role="option"
+                                        data-value="workflow">Automatización de Flujos (n8n/Make)</button>
+                                    <button class="custom-option" type="button" role="option"
+                                        data-value="consulting">Consultoría Estratégica de IA</button>
+                                    <button class="custom-option" type="button" role="option" data-value="other">Otro
+                                        Proyecto a Medida</button>
                                 </div>
                             </div>
                             <!-- Input real validado -->
@@ -456,14 +462,13 @@
                     <div class="form-group">
                         <label for="message">Mensaje</label>
                         <textarea id="message" name="message" rows="5"
-                            placeholder="Cuéntanos brevemente qué procesos te gustaría optimizar..."
-                            required></textarea>
+                            placeholder="Cuéntanos brevemente qué procesos te gustaría optimizar..."></textarea>
                     </div>
 
                     <div class="form-check">
                         <input type="checkbox" id="privacy" name="privacy" required>
                         <label for="privacy">He leído y acepto la <a href="privacidad.html">Política de
-                                Privacidad</a></label>
+                                Privacidad</a> <span class="required-star">*</span></label>
                     </div>
 
                     <button type="submit" class="btn btn-neon w-full">Enviar Solicitud <i data-lucide="arrow-right"
@@ -503,7 +508,7 @@
                 <div class="footer-col">
                     <h4>Contacto</h4>
                     <ul>
-                        <li><a href="mailto:hola@itera.ai">hola@itera.ai</a></li>
+                        <li><a href="mailto:hola@iterasoluciones.tech">hola@iterasoluciones.tech</a></li>
                         <li><a href="#">LinkedIn</a></li>
                         <li><a href="#">Twitter / X</a></li>
                     </ul>
@@ -553,7 +558,8 @@
             <div class="cookie-icon"><i data-lucide="shield-check"></i></div>
             <div class="cookie-text">
                 <h4>Cookies en ITERA</h4>
-                <p>Usamos cookies necesarias para que la web funcione y, si nos das permiso, analíticas para mejorar la experiencia.</p>
+                <p>Usamos cookies necesarias para que la web funcione y, si nos das permiso, analíticas para mejorar la
+                    experiencia.</p>
                 <div class="cookie-preferences" id="cookie-preferences" hidden>
                     <label class="cookie-toggle">
                         <input type="checkbox" checked disabled>

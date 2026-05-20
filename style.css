@@ -1714,3 +1714,26 @@ footer {
     display: none;
   }
 }
+
+/* Required Field Indicators & Validation Errors */
+.required-star {
+  color: #ef4444;
+  margin-left: 4px;
+  font-weight: bold;
+}
+
+.form-group.has-error input,
+.form-group.has-error textarea,
+.form-group.has-error .custom-select-trigger {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
+}
+
+.form-check.has-error label {
+  color: #ef4444 !important;
+}
+
+.form-check.has-error input[type="checkbox"] {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}

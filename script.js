@@ -712,6 +712,7 @@ const initContactForm = () => {
             trigger.style.borderColor = 'var(--accent-cyan)';
 
             hiddenInput.value = option.getAttribute('data-value');
+            select.closest('.form-group')?.classList.remove('has-error');
             closeSelect();
         };
 
@@ -724,6 +725,7 @@ const initContactForm = () => {
             triggerText.style.color = '';
             trigger.style.borderColor = '';
             hiddenInput.value = '';
+            select.closest('.form-group')?.classList.remove('has-error');
             closeSelect();
         };
 
@@ -787,11 +789,73 @@ const initContactForm = () => {
         });
     }
 
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const serviceInput = document.getElementById('service');
+    const privacyInput = document.getElementById('privacy');
+
+    if (nameInput) {
+        nameInput.addEventListener('input', () => nameInput.closest('.form-group')?.classList.remove('has-error'));
+    }
+    if (emailInput) {
+        emailInput.addEventListener('input', () => emailInput.closest('.form-group')?.classList.remove('has-error'));
+    }
+    if (privacyInput) {
+        privacyInput.addEventListener('change', () => privacyInput.closest('.form-check')?.classList.remove('has-error'));
+    }
+
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = contactForm.querySelector('button[type="submit"]');
         const formStatus = document.getElementById('form-status');
         const originalText = submitBtn.innerHTML;
+
+        // Limpiar errores previos
+        const formGroups = contactForm.querySelectorAll('.form-group, .form-check');
+        formGroups.forEach(group => group.classList.remove('has-error'));
+
+        let isValid = true;
+        const errors = [];
+
+        if (!nameInput || !nameInput.value.trim()) {
+            isValid = false;
+            nameInput?.closest('.form-group')?.classList.add('has-error');
+            errors.push('Nombre');
+        }
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailInput || !emailInput.value.trim() || !emailPattern.test(emailInput.value.trim())) {
+            isValid = false;
+            emailInput?.closest('.form-group')?.classList.add('has-error');
+            errors.push('Email');
+        }
+
+        if (!serviceInput || !serviceInput.value) {
+            isValid = false;
+            serviceInput?.closest('.form-group')?.classList.add('has-error');
+            errors.push('Servicio de Interés');
+        }
+
+        if (!privacyInput || !privacyInput.checked) {
+            isValid = false;
+            privacyInput?.closest('.form-check')?.classList.add('has-error');
+            errors.push('Política de Privacidad');
+        }
+
+        if (!isValid) {
+            if (formStatus) {
+                formStatus.textContent = 'Por favor, completa correctamente los campos obligatorios: ' + errors.join(', ') + '.';
+                formStatus.className = 'form-status error';
+            }
+            // Hacer scroll suave hasta el primer elemento con error
+            const firstError = contactForm.querySelector('.has-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const inputToFocus = firstError.querySelector('input, textarea, button');
+                if (inputToFocus) inputToFocus.focus();
+            }
+            return;
+        }
 
         // Recopilar datos del formulario
         const formData = new FormData(contactForm);
