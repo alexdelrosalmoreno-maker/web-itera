@@ -918,6 +918,37 @@ const initContactForm = () => {
     });
 };
 
+// --- Scroll Reveal (Intersection Observer) ---
+const initScrollReveal = () => {
+    const revealElements = document.querySelectorAll('.scroll-reveal');
+    if (!revealElements.length) return;
+
+    // Respect prefers-reduced-motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Fallback: if IntersectionObserver is not supported or motion is reduced, show everything immediately
+    if (!('IntersectionObserver' in window) || prefersReducedMotion) {
+        revealElements.forEach(el => {
+            el.classList.add('revealed');
+        });
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                obs.unobserve(entry.target); // Only animate once
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px'
+    });
+
+    revealElements.forEach(el => observer.observe(el));
+};
+
 // --- Global Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // Si initThreeJS no está definida aquí pero sí en otro sitio, se asume su existencia
@@ -925,4 +956,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initCalculator();
     initCookies();
     initContactForm();
+    initScrollReveal();
 });

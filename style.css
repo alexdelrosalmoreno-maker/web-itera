@@ -1695,6 +1695,40 @@ footer {
   margin-bottom: 15px;
 }
 
+/* --- Scroll Reveal Animations --- */
+.scroll-reveal {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-fade.scroll-reveal {
+  /* Just opacity transition */
+}
+
+.reveal-slide-up.scroll-reveal {
+  transform: translateY(40px);
+}
+
+.reveal-slide-left.scroll-reveal {
+  transform: translateX(-40px);
+}
+
+.reveal-slide-right.scroll-reveal {
+  transform: translateX(40px);
+}
+
+.reveal-scale.scroll-reveal {
+  transform: scale(0.95);
+}
+
+/* State when element becomes visible */
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translate(0) scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
